@@ -1,407 +1,396 @@
 #include "fp2_ariphm.hpp"
 
-#if defined(DEBUG)
 #include <iostream>
-#endif // DEBUG
 
 #include <gmp.h>
 #include <gmpxx.h>
-typedef mpz_class big_int_t;
 
-// fp_elem::fp_elem(const big_int_t& p) : _elem_(0), _p_(p)
-// {}
+template <const mpz_class& p>
+fp_elem<p>::fp_elem(const mpz_class& elem): _elem_(elem)
+{
+    _elem_ %= p;
+}
 
-fp_elem::fp_elem(const big_int_t& elem, const big_int_t& p) : _elem_(elem), _p_(p)
+template <const mpz_class& p>
+fp_elem<p>::fp_elem(const std::string& elem): _elem_(elem)
+{
+    _elem_ %= p;
+}
+
+template <const mpz_class& p>
+fp_elem<p>::fp_elem(const fp_elem<p>& src) :  _elem_(src._elem_)
 {}
 
-fp_elem::fp_elem(const std::string& p) : _elem_(0), _p_(p)
+template <const mpz_class& p>
+fp_elem<p>::fp_elem(fp_elem<p>&& src) : _elem_(std::move(src._elem_))
 {}
 
-fp_elem::fp_elem(const std::string& elem, const std::string& p): _elem_(elem), _p_(p)
-{}
-
-fp_elem::fp_elem(const fp_elem& src) :  _elem_(src._elem_), _p_(src._p_)
-{}
-
-fp_elem::fp_elem(fp_elem&& src) : _elem_(std::move(src._elem_)), _p_(std::move(src._p_))
-{}
-
-fp_elem& fp_elem::operator = (const fp_elem& src)
+template <const mpz_class& p>
+fp_elem<p>& fp_elem<p>::operator = (const fp_elem<p>& src)
 {
     _elem_ = src._elem_;
-    _p_ = src._p_;
     return *this;
 }
 
-fp_elem& fp_elem::operator = (fp_elem&& src)
+template <const mpz_class& p>
+fp_elem<p>& fp_elem<p>::operator = (fp_elem<p>&& src)
 {
     _elem_ = std::move(src._elem_);
-    _p_ = std::move(src._p_);
     return *this;
 }
 
-fp_elem fp_elem::operator + (void) const
+template <const mpz_class& p>
+fp_elem<p> fp_elem<p>::operator + (void) const
 {
     return *this;
 }
 
-fp_elem fp_elem::operator + (const fp_elem& op) const
+template <const mpz_class& p>
+fp_elem<p> fp_elem<p>::operator + (const fp_elem<p>& op) const
 {
-    if(_p_ != op._p_)
-        ; // throw exception here
-    return fp_elem(_elem_ + op._elem_ % _p_);
+    return fp_elem(_elem_ + op._elem_ % p);
 }
 
-fp_elem fp_elem::operator + (fp_elem&& op) const
+template <const mpz_class& p>
+fp_elem<p> fp_elem<p>::operator + (fp_elem<p>&& op) const
 {
-    if(_p_ != op._p_)
-        ; // throw exception here
-    return fp_elem(_elem_ + op._elem_ % _p_);
+    return fp_elem(_elem_ + op._elem_ % p);
 }
 
-fp_elem& fp_elem::operator += (const fp_elem& op)
+template <const mpz_class& p>
+fp_elem<p>& fp_elem<p>::operator += (const fp_elem<p>& op)
 {
-    if(_p_ != op._p_)
-        ; // throw exception here
-    _elem_ = _elem_ + op._elem_ % _p_;
+    _elem_ = _elem_ + op._elem_ % p;
     return *this;
 }
 
-fp_elem& fp_elem::operator += (fp_elem&& op)
+template <const mpz_class& p>
+fp_elem<p>& fp_elem<p>::operator += (fp_elem<p>&& op)
 {
-    if(_p_ != op._p_)
-        ; // throw exception here
-    _elem_ = _elem_ + op._elem_ % _p_;
+    _elem_ = _elem_ + op._elem_ % p;
     return *this;
 }
 
-fp_elem fp_elem::operator - (void)
+template <const mpz_class& p>
+fp_elem<p> fp_elem<p>::operator - (void) const
 {
-    return fp_elem(_p_ - _elem_);
+    return fp_elem(p - _elem_);
 }
 
-fp_elem fp_elem::operator - (const fp_elem& op) const
+template <const mpz_class& p>
+fp_elem<p> fp_elem<p>::operator - (const fp_elem<p>& op) const
 {
-    if(_p_ != op._p_)
-        ; // throw exception here
-    return fp_elem(_elem_ + (_p_ - op._elem_) % _p_);
+    return fp_elem(_elem_ + (p - op._elem_) % p);
 }
 
-fp_elem fp_elem::operator - (fp_elem&& op) const
+template <const mpz_class& p>
+fp_elem<p> fp_elem<p>::operator - (fp_elem<p>&& op) const
 {
-    if(_p_ != op._p_)
-        ; // throw exception here
-    return fp_elem(_elem_ + (_p_ - op._elem_) % _p_);
+    return fp_elem(_elem_ + (p - op._elem_) % p);
 }
 
-fp_elem& fp_elem::operator -= (const fp_elem& op)
+template <const mpz_class& p>
+fp_elem<p>& fp_elem<p>::operator -= (const fp_elem<p>& op)
 {
-    if(_p_ != op._p_)
-        ; // throw exception here
-    _elem_ = _elem_ + (_p_ - op._elem_) % _p_;
+    _elem_ = _elem_ + (p - op._elem_) % p;
     return *this;
 }
 
-fp_elem& fp_elem::operator -= (fp_elem&& op)
+template <const mpz_class& p>
+fp_elem<p>& fp_elem<p>::operator -= (fp_elem<p>&& op)
 {
-    if(_p_ != op._p_)
-        ; // throw exception here
-    _elem_ = _elem_ + (_p_ - op._elem_) % _p_;
+    _elem_ = _elem_ + (p - op._elem_) % p;
     return *this;
 }
 
-fp_elem fp_elem::operator * (const fp_elem& op) const
+template <const mpz_class& p>
+fp_elem<p> fp_elem<p>::operator * (const fp_elem<p>& op) const
 {
-    if(_p_ != op._p_)
-        ; // throw exception here
-    return fp_elem(_elem_ * op._elem_ % _p_);
+    return fp_elem(_elem_ * op._elem_ % p);
 }
 
-fp_elem fp_elem::operator * (fp_elem&& op) const
+template <const mpz_class& p>
+fp_elem<p> fp_elem<p>::operator * (fp_elem<p>&& op) const
 {
-    if(_p_ != op._p_)
-        ; // throw exception here
-    return fp_elem(_elem_ * op._elem_ % _p_);
+    return fp_elem(_elem_ * op._elem_ % p);
 }
 
-fp_elem& fp_elem::operator *= (const fp_elem& op)
+template <const mpz_class& p>
+fp_elem<p>& fp_elem<p>::operator *= (const fp_elem<p>& op)
 {
-    if(_p_ != op._p_)
-        ; // throw exception here
-    _elem_ = _elem_ * op._elem_ % _p_;
+    _elem_ = _elem_ * op._elem_ % p;
     return *this;
 }
 
-fp_elem& fp_elem::operator *= (fp_elem&& op)
+template <const mpz_class& p>
+fp_elem<p>& fp_elem<p>::operator *= (fp_elem<p>&& op)
 {
-    if(_p_ != op._p_)
-        ; // throw exception here
-    _elem_ = _elem_ * op._elem_ % _p_;
+    _elem_ = _elem_ * op._elem_ % p;
     return *this;
 }
 
-fp_elem invert(const fp_elem& op)
+template <const mpz_class& p>
+fp_elem<p> fp_elem<p>::invert(void)
 {
     mpz_t tmp;
-    mpz_invert(tmp, op._elem_.get_mpz_t(), op._p_.get_mpz_t());
-    fp_elem res(mpz_class(tmp), op._p_);
+    mpz_init(tmp);
+    mpz_invert(tmp, _elem_.get_mpz_t(), p.get_mpz_t());
+    fp_elem<p> res(mpz_class(tmp).get_str());
     mpz_clear(tmp);
     return res;
 }
 
-fp_elem invert(fp_elem&& op)
+template <const mpz_class& p>
+void fp_elem<p>::print(void) const
 {
-    mpz_t tmp;
-    mpz_invert(tmp, op._elem_.get_mpz_t(), op._p_.get_mpz_t());
-    fp_elem res(mpz_class(tmp), op._p_);
-    mpz_clear(tmp);
-    return res;
+    std::cout << _elem_.get_str() << " % " << p.get_str() << std::endl;
 }
 
-
-#if 0
-fp2_elem::fp2_elem(mpz_class& _p) : p(_p), _real_(0), _imag_(0)
+template <const mpz_class& p>
+std::string fp_elem<p>::get_str(void) const
 {
-    #if defined(DEBUG)
-    std::cout << "ctor default: " << _real_ << " + " << _imag_ << " * i" << std::endl; 
-    #endif // DEBUG
+    return _elem_.get_str();
 }
 
-fp2_elem::fp2_elem(const mpz_class& _p, const mpz_class& __real_, const mpz_class& __imag_) : p(_p), _real_(__real_ % p), _imag_(__imag_ % p)
+template <const mpz_class& p>
+std::string fp_elem<p>::get_p_str(void) const
 {
-    #if defined(DEBUG)
-    std::cout << "ctor: " << _real_ << " + " << _imag_ << " * i" << std::endl; 
-    #endif // DEBUG
+    return p.get_str();
 }
 
-fp2_elem::fp2_elem(const fp2_elem& src) : _real_(src._real_ % p), _imag_(src._imag_ % p)
-{
-    #if defined(DEBUG)
-    std::cout << "ctor copy: " << _real_ << " + " << _imag_ << " * i" << std::endl; 
-    #endif // DEBUG
-}
-fp2_elem::fp2_elem(fp2_elem&& src) noexcept
+template <const mpz_class& p>
+fp2_elem<p>::fp2_elem(const fp_elem<p>& real, const fp_elem<p>& imag) : _real_(real), _imag_(imag)
+{}
+
+// template <const mpz_class& p>
+// fp2_elem<p>::fp2_elem (fp_elem<p>&& real, fp_elem<p>&& imag) : _real_(real), _imag_(imag)
+// {}
+
+template <const mpz_class& p>
+fp2_elem<p>::fp2_elem(const mpz_class& real, const mpz_class& imag) : _real_(real), _imag_(imag)
+{}
+
+template <const mpz_class& p>
+fp2_elem<p>::fp2_elem(const std::string& real, const std::string& imag) : _real_(real), _imag_(imag)
+{}
+
+template <const mpz_class& p>
+fp2_elem<p>::fp2_elem(const fp2_elem<p>& src) : _real_(src._real_), _imag_(src._imag_)
+{}
+
+template <const mpz_class& p>
+fp2_elem<p>::fp2_elem(fp2_elem<p>&& src) noexcept
 {
     _real_ = std::move(src._real_);
     _imag_ = std::move(src._imag_);
-    #if defined(DEBUG)
-    std::cout << "ctor move: " << _real_ << " + " << _imag_ << " * i" << std::endl; 
-    #endif // DEBUG
 }
 
-fp2_elem& fp2_elem::operator = (const fp2_elem& src)
+template <const mpz_class& p>
+fp2_elem<p>& fp2_elem<p>::operator = (const fp2_elem<p>& src)
 {
-    #if defined(DEBUG)
-    #endif // DEBUG
     _real_ = src._real_;
     _imag_ = src._imag_;
-    std::cout << "fp2_elem& operator =: " << _real_ << " + " << _imag_ << " * i" << std::endl; 
     return *this;
 }
 
-fp2_elem& fp2_elem::operator = (fp2_elem&& src) noexcept
+template <const mpz_class& p>
+fp2_elem<p>& fp2_elem<p>::operator = (fp2_elem<p>&& src) noexcept
 {
-    #if defined(DEBUG)
-    #endif // DEBUG
-    _real_ = std::move(src._real_ % p);
-    _imag_ = std::move(src._imag_ % p);
-    std::cout << "fp2_elem&& operator =: " << _real_ << " + " << _imag_ << " * i" << std::endl; 
+    _real_ = std::move(src._real_);
+    _imag_ = std::move(src._imag_);
     return *this;
 }
 
-fp2_elem fp2_elem::operator + (void) const
+template <const mpz_class& p>
+fp2_elem<p> fp2_elem<p>::operator + (void) const
 {
     return *this;
 }
 
-fp2_elem fp2_elem::operator + (const fp2_elem& op) const
+template <const mpz_class& p>
+fp2_elem<p> fp2_elem<p>::operator + (const fp2_elem<p>& op) const
 {
-    return fp2_elem((_real_ + op._real_) % p, (_imag_ + op._imag_) % p);
+    return fp2_elem(_real_ + op._real_, _imag_ + op._imag_);
 }
 
-fp2_elem fp2_elem::operator + (fp2_elem&& op) const
+template <const mpz_class& p>
+fp2_elem<p> fp2_elem<p>::operator + (fp2_elem<p>&& op) const
 {
-    return fp2_elem((_real_ + op._real_) % p, (_imag_ + op._imag_) % p);
+    return fp2_elem(_real_ + op._real_, _imag_ + op._imag_);
 }
 
-fp2_elem fp2_elem::operator + (const mpz_class& op) const
+template <const mpz_class& p>
+fp2_elem<p>& fp2_elem<p>::operator += (const fp2_elem<p>& op)
 {
-    return fp2_elem((_real_ + op) % p, _imag_);
-}
-fp2_elem& fp2_elem::operator += (const fp2_elem& op)
-{
-    _real_ = (_real_ + op._real_) % p;
-    _imag_ = (_imag_ + op._imag_) % p;
+    _real_ = _real_ + op._real_;
+    _imag_ = _imag_ + op._imag_;
     return *this;
 }
 
-fp2_elem& fp2_elem::operator += (fp2_elem&& op)
+template <const mpz_class& p>
+fp2_elem<p>& fp2_elem<p>::operator += (fp2_elem<p>&& op)
 {
-    _real_ = (_real_ + op._real_) % p;
-    _imag_ = (_imag_ + op._imag_) % p;
+    _real_ = _real_ + op._real_;
+    _imag_ = _imag_ + op._imag_;
     return *this;
 }
 
-
-fp2_elem& fp2_elem::operator += (const mpz_class& op)
+template <const mpz_class& p>
+fp2_elem<p> fp2_elem<p>::operator - (void) const
 {
-    _real_ = (_real_ + op) % p;
+    return fp2_elem(-_real_, _imag_);
+}
+
+template <const mpz_class& p>
+fp2_elem<p> fp2_elem<p>::operator - (const fp2_elem<p>& op) const
+{
+    return fp2_elem(_real_ - op._real_, _imag_ - op._imag_);
+}
+
+template <const mpz_class& p>
+fp2_elem<p> fp2_elem<p>::operator - (fp2_elem<p>&& op) const
+{
+    return fp2_elem(_real_ - op._real_, _imag_ - op._imag_);
+}
+
+template <const mpz_class& p>
+fp2_elem<p>& fp2_elem<p>::operator -= (const fp2_elem<p>& op)
+{
+    _real_ = _real_ - op._real_;
+    _imag_ = _imag_ - op._imag_;
     return *this;
 }
 
-fp2_elem fp2_elem::operator - (void) const
+template <const mpz_class& p>
+fp2_elem<p>& fp2_elem<p>::operator -= (fp2_elem<p>&& op)
 {
-    return fp2_elem(p - _real_ % p, p - _imag_ % p);
-}
-
-fp2_elem fp2_elem::operator - (const fp2_elem& op) const
-{
-    return fp2_elem((_real_ + (p - op._real_ % p)) % p, (_imag_ + (p - op._imag_ % p)) % p);
-}
-
-fp2_elem fp2_elem::operator - (fp2_elem&& op) const
-{
-    return fp2_elem((_real_ + (p - op._real_ % p)) % p, (_imag_ + (p - op._imag_ % p)) % p);
-}
-
-fp2_elem fp2_elem::operator - (const mpz_class& op) const
-{
-    return fp2_elem((_real_ + (p - op % p)) % p, _imag_ % p);
-}
-fp2_elem& fp2_elem::operator -= (const fp2_elem& op)
-{
-    _real_ = (_real_ + (p - op._real_ % p)) % p;
-    _imag_ = (_imag_ + (p - op._imag_ % p)) % p;
+    _real_ = _real_ - op._real_;
+    _imag_ = _imag_ - op._imag_;
     return *this;
 }
 
-fp2_elem& fp2_elem::operator -= (fp2_elem&& op)
+template <const mpz_class& p>
+fp2_elem<p> fp2_elem<p>::operator * (const fp2_elem<p>& op) const
 {
-    _real_ = (_real_ + (p - op._real_ % p)) % p;
-    _imag_ = (_imag_ + (p - op._imag_ % p)) % p;
-    return *this;
-}
-
-
-fp2_elem& fp2_elem::operator -= (const mpz_class& op)
-{
-    _real_ = (_real_ + (p - op % p)) % p;
-    return *this;
-}
-
-fp2_elem fp2_elem::operator * (const fp2_elem& op) const
-{
-    return fp2_elem((_real_ * op._real_ % p + (p - _imag_ * op._imag_ % p)) % p, (_real_ * op._imag_ % p + _imag_ * op._real_ % p) % p);
+    return fp2_elem(_real_ * op._real_ - _imag_ * op._imag_, _real_ * op._imag_ + _imag_ * op._real_);
 }
     
-fp2_elem fp2_elem::operator * (fp2_elem&& op) const
+template <const mpz_class& p>
+fp2_elem<p> fp2_elem<p>::operator * (fp2_elem<p>&& op) const
 {
-    return fp2_elem((_real_ * op._real_ % p + (p - _imag_ * op._imag_ % p)) % p, (_real_ * op._imag_ % p + _imag_ * op._real_ % p) % p);
+    return fp2_elem(_real_ * op._real_ - _imag_ * op._imag_, _real_ * op._imag_ + _imag_ * op._real_);
 }
 
-fp2_elem fp2_elem::operator * (const mpz_class& op) const
+template <const mpz_class& p>
+fp2_elem<p>& fp2_elem<p>::operator *= (const fp2_elem<p>& op)
 {
-    return fp2_elem(_real_ * op % p, _imag_ * op % p);
-}
-
-fp2_elem& fp2_elem::operator *= (const fp2_elem& op)
-{
-    _real_ = (_real_ * op._real_ % p + (p - _imag_ * op._imag_ % p)) % p;
-    _imag_ = (_real_ * op._imag_ % p + _imag_ * op._real_) % p;
+    _real_ = _real_ * op._real_ - _imag_ * op._imag_;
+    _imag_ = _real_ * op._imag_ + _imag_ * op._real_;
     return *this;
 }
 
-fp2_elem& fp2_elem::operator *= (fp2_elem&& op)
+template <const mpz_class& p>
+fp2_elem<p>& fp2_elem<p>::operator *= (fp2_elem<p>&& op)
 {
-    _real_ = (_real_ * op._real_ % p + (p - _imag_ * op._imag_ % p)) % p;
-    _imag_ = (_real_ * op._imag_ % p + _imag_ * op._real_) % p;
+    _real_ = _real_ * op._real_ - _imag_ * op._imag_;
+    _imag_ = _real_ * op._imag_ + _imag_ * op._real_;
     return *this;
 }
 
-fp2_elem invert(const fp2_elem& op)
+template <const mpz_class& p>
+fp2_elem<p> fp2_elem<p>::invert(void) const
 {
+    fp_elem<p> tmp = (_real_ * _real_ + _imag_ * _imag_).invert();
+    fp2_elem<p> res;
+    res._real_ = _real_ * tmp;
+    res._imag_ = - _imag_;
+    res._imag_ *= tmp;
+    return res; 
 }
 
-fp2_elem invert(fp2_elem&& op)
+template <const mpz_class& p>
+std::string fp2_elem<p>::get_real_str(void) const
 {
+    return _real_.get_str();
 }
 
-fp2_elem fp2_elem::operator / (const fp2_elem& op) const
+template <const mpz_class& p>
+std::string fp2_elem<p>::get_imag_str(void) const
 {
-    mpz_class denominator = op._real_ * op._real_ + op._imag_ * op._imag_;
-    return fp2_elem((_real_ * op._real_ % p + (p - _imag_ * op._imag_ % p)) % p,
-                    (_real_ * op._imag_ % p + _imag_ * op._real_ % p) % p);
-}
-    
-fp2_elem fp2_elem::operator / (fp2_elem&& op) const
-{
-    mpz_class denominator = op._real_ * op._real_ + op._imag_ * op._imag_;
-    return fp2_elem((_real_ * op._real_ + _imag_ * op._imag_) / denominator,
-                 (-_real_ * op._imag_ + _imag_ * op._real_) / denominator);
+    return _imag_.get_str();
 }
 
-fp2_elem fp2_elem::operator / (const mpz_class& op) const
+template <const mpz_class& p>
+std::string fp2_elem<p>::get_p_str(void) const
 {
-    return fp2_elem(_real_ / op, _imag_ / op);
+    return p.get_str();
 }
 
-fp2_elem& fp2_elem::operator /= (const fp2_elem& op)
+template <const mpz_class& p>
+void fp2_elem<p>::print(void) const
 {
-    mpz_class denominator = op._real_ * op._real_ + op._imag_ * op._imag_;
-    _real_ = (_real_ * op._real_ + _imag_ * op._imag_) / denominator;
-    _imag_ = (-_real_ * op._imag_ + _imag_ * op._real_) / denominator;
-    return *this;
+    std::cout << "(" <<_real_.get_str() << " + " << _imag_.get_str() << " * i) % " << p << std::endl;
 }
-
-fp2_elem& fp2_elem::operator /= (fp2_elem&& op)
-{
-    mpz_class denominator = op._real_ * op._real_ + op._imag_ * op._imag_;
-    _real_ = (_real_ * op._real_ + _imag_ * op._imag_) / denominator;
-    _imag_ = (-_real_ * op._imag_ + _imag_ * op._real_) / denominator;
-    return *this;
-}
-
-fp2_elem& fp2_elem:: operator /= (const mpz_class& op)
-{
-    _real_ = _real_ / op;
-    _imag_ = _imag_ / op;
-    return *this;
-}
-namespace fp2_field
-{
-    fp2_field(mpz_class& _p) : p(_p)
-    {}
-
-    fp2_elem& init_elem(void) const
-    {
-        return fp2_elem(p);
-    }
-
-    fp2_elem& init_elem(mpz_class& _real_, mpz_class& _imag_) const
-    {
-        return fp2_elem(p, _real_, _imag_);
-    }
-}
-#endif // 0
 
 #if defined(DEBUG)
+
+const mpz_class p = mpz_class("11");
 bool test_fp_elem(void)
 {
-    fp_elem a()
+    //static 
+    fp_elem<p> a("2");
+    std::cout << "a = "; a.print();
+    fp_elem<p> b("9");
+    std::cout << "b = "; b.print();
+    fp_elem<p> c = a + b;
+    std::cout << "c = "; c.print();
+    fp_elem<p> d("19");
+    std::cout << "d = "; d.print();
+    c = d;
+    std::cout << "c = "; c.print();
+    d = fp_elem<p>("8") - fp_elem<p>("1");
+    std::cout << "d = "; d.print();
+    d = -d;
+    std::cout << "d = "; d.print();
+    a =  d * b;
+    std::cout << "a = "; a.print();
+    b = a.invert();
+    std::cout << "b = "; b.print();
+    fp_elem<p> k = (a + b).invert();
+    std::cout << "k = " << k.get_str() << " % " << k.get_p_str() << std::endl;
+    k = k.invert();
+    std::cout << "k = " << k.get_str() << " % " << k.get_p_str() << std::endl;
+    return true;
+}
+
+bool test_fp2_elem(void)
+{
+    fp2_elem<p> a;
+    std::cout << "a = "; a.print();
+    fp2_elem<p> b(mpz_class(1), mpz_class(4));
+    std::cout << "b = "; b.print();
+    fp2_elem<p> c("3", "12");
+    std::cout << "c = "; c.print();
+    fp2_elem<p> d = b + c;
+    std::cout << "d = "; d.print();
+    d = b - c;
+    std::cout << "d = "; d.print();
+    d = c - b;
+    std::cout << "d = "; d.print();
+    d = -d;
+    std::cout << "d = "; d.print();
+    c = d.invert();
+    std::cout << "c = (" << d.get_real_str() << " + " << c.get_imag_str() << " * i) % " << d.get_p_str() << std::endl;
+    (c * d).print();
+    // fp2_elem<p> k = -b;
+    // b = -b;
+    return true;
 }
 
 int main(void)
 {
-#if 0
-    fp2_elem a;
-    fp2_elem b(mpz_class(1), mpz_class(4));
-    fp2_elem c(mpz_class(3), mpz_class(2));
-    fp2_elem d = b + c;
-    d = d / 2;
-    a = +b;
-    b = -b;
-#endif // 0
-
+    test_fp_elem();
+    test_fp2_elem();
     return 0;
 }
 #endif // DEBUG
