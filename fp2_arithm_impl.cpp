@@ -1,4 +1,5 @@
 #include <iostream>
+#include <ctime>
 
 #include <gmp.h>
 #include <gmpxx.h>
@@ -267,6 +268,21 @@ std::string FpElem<p>::get_p_str(void) const
 {
     return p.get_str();
 }
+
+template <const mpz_class& p>
+void FpElem<p>::set_random(const unsigned long bitcnt)
+{
+    gmp_randclass random(gmp_randinit_default);
+    random.seed(std::time(nullptr));
+    _elem_ = random.get_z_bits(bitcnt);
+}
+
+template <const mpz_class& p>
+unsigned long FpElem<p>::get_ui(void) const
+{
+    return mpz_get_ui(_elem_.get_mpz_t());
+} 
+
 template <const mpz_class& p>
 Fp2Elem<p>::Fp2Elem(void) : _real_(FpElem<p>("0")), _imag_(FpElem<p>("0"))
 {}

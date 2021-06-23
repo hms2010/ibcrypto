@@ -65,6 +65,8 @@ class FpElem
         std::string get_str(void) const;
         std::string get_p_str(void) const;
         void print(void) const;
+        void set_random(const unsigned long bitcnt);
+        unsigned long get_ui(void) const;
 };
 
 template <const big_int_t& p>

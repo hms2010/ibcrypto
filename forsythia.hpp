@@ -66,6 +66,7 @@ class Forsythia
         Forsythia(ForsythiaSet param_set, ForsythiaSideParams side);
         void isogen(const FpElem<p>& sk, MontgomeryPoint<p>& pkP, MontgomeryPoint<p>& pkQ, MontgomeryPoint<p>& pkR);
         void isoex(const FpElem<p>& sk, const MontgomeryPoint<p>& pkP, const MontgomeryPoint<p>& pkQ, const MontgomeryPoint<p>& pkR, Fp2Elem<p>& j_inv);
+        unsigned long get_e(void) const;
 };
 
 
@@ -166,5 +167,10 @@ void Forsythia<p>::isoex(const FpElem<p>& sk, const MontgomeryPoint<p>& pkP, con
     common_curve.print();
     j_inv.print();
     #endif // DEBUG
+}
 
+template <const mpz_class& p>
+unsigned long Forsythia<p>::get_e(void) const
+{
+    return e.get_ui();
 }

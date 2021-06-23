@@ -1,47 +1,76 @@
 #include <iostream>
 #include <string>
+#include <ctime>
+#include <string>
 
+#include <gmp.h>
 #include "fp2_arithm.hpp"
 #include "ec_arithm.hpp"
 #include "forsythia.hpp"
 
 bool test_proto_toy(void);
-bool test_proto128(std::string n2, std::string n3);
+bool test_proto128(unsigned long& delta);
 
 mpz_class p = mpz_class(g_param_set[forsythia128].p);
 int main(void)
 {
-    test_proto128("65", "13");
+    long double common_time = 0;
+    unsigned long delta = 0;
+    int runs = 10;
+    bool res;
+    for (int e = 0; e < runs; ++e)
+    {
+        res = test_proto128(delta);
+        if(!res)
+        {
+            std::cout << "FAILED" << std::endl;
+            break;
+        }
+        common_time += delta;
+    }
+    std::cout << common_time / runs;
     return 0;
 }
 
-bool test_proto128(std::string n2, std::string n3)
+bool test_proto128(unsigned long & delta)
 {
+    std::time_t start_time;
+    std::time_t end_time;
+
     Forsythia<p> for2(forsythia128, for_side_2);
-    FpElem<p> sk2(n2);
+    FpElem<p> sk2;
     MontgomeryPoint<p> P23;
     MontgomeryPoint<p> Q23;
     MontgomeryPoint<p> R23;
-    Fp2Elem<p> j2;
+    Fp2Elem<p> j32;
 
     Forsythia<p> for3(forsythia128, for_side_3);
-    FpElem<p> sk3(n3);
+    FpElem<p> sk3;
     MontgomeryPoint<p> P32;
     MontgomeryPoint<p> Q32;
     MontgomeryPoint<p> R32;
-    Fp2Elem<p> j3;
+    Fp2Elem<p> j23;
+    start_time = std::time(nullptr);
 
+    sk2.set_random(for2.get_e());
     for2.isogen(sk2, P23, Q23, R23);
+
+    sk3.set_random(for3.get_e());
     for3.isogen(sk3, P32, Q32, R32);
 
-    for2.isoex(sk2, P32, Q32, R32, j2);
-    for3.isoex(sk3, P23, Q23, R23, j3);
+    for2.isoex(sk2, P32, Q32, R32, j32);
+    for3.isoex(sk3, P23, Q23, R23, j23);
 
-    bool res = j3 == j2;
+    end_time = std::time(nullptr);
+    delta = end_time - start_time;
+
+    bool res = j32 == j23;
+    #if 0
     if(res)
         std::cout << "OK. j_inv = " << std::endl << j2.get_str() << std::endl;
     else
-        std::cout << "FAILED. j2 = " << j2.get_str() << ", j3 = " << j3.get_str() << std::endl;
+        std::cout << "FAILED. j23 = " << j23.get_str() << ", j32 = " << j32.get_str() << std::endl;
+    #endif // 0
     return res;
 }
 
