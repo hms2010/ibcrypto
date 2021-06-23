@@ -3,100 +3,50 @@
 
 #include "fp2_arithm.hpp"
 #include "ec_arithm.hpp"
+#include "forsythia.hpp"
 
-const mpz_class p = mpz_class("11");
+bool test_proto_toy(void);
+bool test_proto128(std::string n2, std::string n3);
 
-bool test_FpElem(void)
+mpz_class p = mpz_class(g_param_set[forsythia128].p);
+int main(void)
 {
-    //static 
-    FpElem<p> a("2");
-    std::cout << "a = "; a.print();
-    FpElem<p> b("9");
-    std::cout << "b = "; b.print();
-    FpElem<p> c = a + b;
-    std::cout << "c = "; c.print();
-    FpElem<p> d("19");
-    std::cout << "d = "; d.print();
-    c = d;
-    std::cout << "c = "; c.print();
-    d = FpElem<p>("8") - FpElem<p>("1");
-    std::cout << "d = "; d.print();
-    d = -d;
-    std::cout << "d = "; d.print();
-    a =  d * b;
-    std::cout << "a = "; a.print();
-    b = a.invert();
-    std::cout << "b = "; b.print();
-    FpElem<p> k = (a + b).invert();
-    std::cout << "k = " << k.get_str() << " % " << k.get_p_str() << std::endl;
-    k = k.invert();
-    std::cout << "k = " << k.get_str() << " % " << k.get_p_str() << std::endl;
-    std::cout << (a == a) << std::endl;
-    std::cout << (a == k) << std::endl;
-    return true;
+    test_proto128("65", "13");
+    return 0;
 }
 
-bool test_Fp2Elem(void)
+bool test_proto128(std::string n2, std::string n3)
 {
-    Fp2Elem<p> a;
-    std::cout << "a = "; a.print();
-    Fp2Elem<p> b(mpz_class(1), mpz_class(4));
-    std::cout << "b = "; b.print();
-    Fp2Elem<p> c("3", "12");
-    std::cout << "c = "; c.print();
-    Fp2Elem<p> d = b + c;
-    std::cout << "d = "; d.print();
-    d = b - c;
-    std::cout << "d = "; d.print();
-    d = c - b;
-    std::cout << "d = "; d.print();
-    d = -d;
-    std::cout << "d = "; d.print();
-    c = d.invert();
-    std::cout << "c = (" << d.get_real_str() << " + " << c.get_imag_str() << " * i) % " << d.get_p_str() << std::endl;
-    (c * d).print();
-    std::cout << (a == a) << std::endl;
-    std::cout << (a == c) << std::endl;
-    return true;
-}
+    Forsythia<p> for2(forsythia128, for_side_2);
+    FpElem<p> sk2(n2);
+    MontgomeryPoint<p> P23;
+    MontgomeryPoint<p> Q23;
+    MontgomeryPoint<p> R23;
+    Fp2Elem<p> j2;
 
-bool test_ec_arithm(void)
-{
-    Fp2Elem<p> x("9", "0");
-    Fp2Elem<p> y("2", "0");
-    MontgomeryCurve<p> mont_curve(x, y, Fp2Elem<p>("1", "0"));
-    MontgomeryPoint<p> P(x, y);
-    MontgomeryPoint<p> S(x, y);
-    x = x + x;
-    MontgomeryPoint<p> Q(x, y);
-    FpElem<p> k("4");
-    mont_curve.ladder3pt(k, P, Q, Q, S);
+    Forsythia<p> for3(forsythia128, for_side_3);
+    FpElem<p> sk3(n3);
+    MontgomeryPoint<p> P32;
+    MontgomeryPoint<p> Q32;
+    MontgomeryPoint<p> R32;
+    Fp2Elem<p> j3;
 
-    MontgomeryPoint<p> T;
-    mont_curve.xDblAdd(P, Q, Q, S, T);
-    mont_curve.j_inv();
+    for2.isogen(sk2, P23, Q23, R23);
+    for3.isogen(sk3, P32, Q32, R32);
 
-    MontgomeryPoint<p> O(Fp2Elem<p>("1", "0"), Fp2Elem<p>("0", "0"));
-    mont_curve.xDblAdd(P, O, P, Q, S);
-    O.print();
-    P.print();
-    P.get_normalized().print();
-    Q.print();
-    S.print();
-    MontgomeryPoint<p> H(std::move(MontgomeryPoint<p>(P.X, P.Z)));
-    std::cout << "H:";
-    H.print();
-    mont_curve.xDbl(P, Q);
-    mont_curve.xDbl_e(k, P, Q);
-    mont_curve.xTrpl(P, Q);
-    MontgomeryCurve<p> iso_mont_curve(x, y, Fp2Elem<p>("1", "0"));
-    mont_curve.iso2e(k, O, iso_mont_curve, P, Q, S, P, Q, S);
-    MontgomeryCurve<p> from_point_mont_curve(P, Q, S);
-    return true;
+    for2.isoex(sk2, P32, Q32, R32, j2);
+    for3.isoex(sk3, P23, Q23, R23, j3);
+
+    bool res = j3 == j2;
+    if(res)
+        std::cout << "OK. j_inv = " << std::endl << j2.get_str() << std::endl;
+    else
+        std::cout << "FAILED. j2 = " << j2.get_str() << ", j3 = " << j3.get_str() << std::endl;
+    return res;
 }
 
 const mpz_class q = mpz_class("431");
-bool test_proto(void)
+bool test_proto_toy(void)
 {
     MontgomeryCurve<q> start_curve(Fp2Elem<q>("104", "0"), Fp2Elem<q>("1", "0"), Fp2Elem<q>("1", "0"));
 
@@ -180,22 +130,4 @@ bool test_proto(void)
     else
         std::cout << "FAILED. j23_inv = " << j23.get_str() << ", j32_inv = " << j32.get_str() << std::endl;
     return res;
-}
-
-int main(void)
-{
-    // Fp2Elem<p> a("2", "1");
-    // Fp2Elem<p> b(a.invert());
-    // a.print();
-    // b.print();
-    // (a * b).print();
-    // b = a * a;
-    // b.print();
-    // a *= a;
-    // a.print();
-    // test_FpElem();
-    // test_Fp2Elem();
-    // test_ec_arithm();
-    test_proto();
-    return 0;
 }

@@ -2,7 +2,7 @@
 
 #include "fp2_arithm.hpp"
 
-template <const big_int_t& p> 
+template <const big_int_t& p>
 struct MontgomeryPoint
 {
         // Montgomery curve point on projective space
@@ -26,7 +26,7 @@ struct MontgomeryPoint
         void print(void) const;
 };
 
-template <const big_int_t& p> 
+template <const big_int_t& p>
 class MontgomeryCurve
 {
         // b*y^2 = x^3 + a*x^2 + x
