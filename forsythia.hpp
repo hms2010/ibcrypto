@@ -33,8 +33,9 @@ enum _RealImage_
 
 enum ForsythiaSet
 {
-    forsythia80 = 0,
-    forsythia128
+    forsythia128,
+    forsythia256,
+    forsythia_params_num
 };
 
 struct ForsythiaParamSet
@@ -74,7 +75,7 @@ class Forsythia
 
 
 
-extern ForsythiaParamSet g_param_set[2];
+extern ForsythiaParamSet g_param_set[forsythia_params_num];
 
 template <const mpz_class& p>
 Forsythia<p>::Forsythia(ForsythiaSet param_set, ForsythiaSideParams _side_)

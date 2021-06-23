@@ -9,18 +9,20 @@
 #include "forsythia.hpp"
 
 bool test_proto_toy(void);
-bool test_proto128(unsigned long& delta);
+bool test_proto(ForsythiaSet param_set, unsigned long& delta);
 
-mpz_class p = mpz_class(g_param_set[forsythia128].p);
+mpz_class p;
 int main(void)
 {
     long double common_time = 0;
     unsigned long delta = 0;
-    int runs = 10;
+    long long runs = 100;
     bool res;
-    for (int e = 0; e < runs; ++e)
+
+    p = mpz_class(g_param_set[forsythia128].p);
+    for (long long e = 0; e < runs; ++e)
     {
-        res = test_proto128(delta);
+        res = test_proto(forsythia128, delta);
         if(!res)
         {
             std::cout << "FAILED" << std::endl;
@@ -28,23 +30,37 @@ int main(void)
         }
         common_time += delta;
     }
-    std::cout << common_time / runs;
+    std::cout << "forsythia128: " << common_time / runs << "s" << std::endl;
+
+    common_time = 0;
+    p = mpz_class(g_param_set[forsythia256].p);
+    for (long long e = 0; e < runs; ++e)
+    {
+        res = test_proto(forsythia256, delta);
+        if(!res)
+        {
+            std::cout << "FAILED" << std::endl;
+            break;
+        }
+        common_time += delta;
+    }
+    std::cout << "forsythia256: " << common_time / runs << "s" << std::endl;
     return 0;
 }
 
-bool test_proto128(unsigned long & delta)
+bool test_proto(ForsythiaSet param_set, unsigned long & delta)
 {
     std::time_t start_time;
     std::time_t end_time;
 
-    Forsythia<p> for2(forsythia128, for_side_2);
+    Forsythia<p> for2(param_set, for_side_2);
     FpElem<p> sk2;
     MontgomeryPoint<p> P23;
     MontgomeryPoint<p> Q23;
     MontgomeryPoint<p> R23;
     Fp2Elem<p> j32;
 
-    Forsythia<p> for3(forsythia128, for_side_3);
+    Forsythia<p> for3(param_set, for_side_3);
     FpElem<p> sk3;
     MontgomeryPoint<p> P32;
     MontgomeryPoint<p> Q32;
@@ -64,13 +80,14 @@ bool test_proto128(unsigned long & delta)
     end_time = std::time(nullptr);
     delta = end_time - start_time;
 
-    bool res = j32 == j23;
-    #if 0
-    if(res)
-        std::cout << "OK. j_inv = " << std::endl << j2.get_str() << std::endl;
-    else
+    Fp2Elem<p> null_elem("0", "0");
+    bool res = (j32 == j23) && !(j23 == null_elem);
+    if(!res)
         std::cout << "FAILED. j23 = " << j23.get_str() << ", j32 = " << j32.get_str() << std::endl;
-    #endif // 0
+    #ifdef DEBUG
+    else
+        std::cout << "OK. j_inv = " << std::endl << j23.get_str() << std::endl;
+    #endif // DEBUG
     return res;
 }
 
